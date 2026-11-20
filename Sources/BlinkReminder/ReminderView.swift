@@ -52,10 +52,9 @@ struct ReminderView: View {
 
             HStack {
                 Button("Dismiss", action: onDismiss)
-                    .keyboardShortcut(.cancelAction)
                 if session.startedAt == nil {
                     Button("Start", action: onStart)
-                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
                 }
             }
         }
