@@ -3,7 +3,9 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var settings: Settings
     let scheduler: ReminderScheduler
+    let activity: ActivityLog
     let onRemindNow: () -> Void
+    let onShowHistory: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -28,7 +30,15 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
             }
 
+            if let today = activity.summaries(days: 1).first {
+                Text("Today: \(today.completed) \(today.completed == 1 ? "break" : "breaks") taken, \(today.missed) missed")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
             Divider()
+
+            Button("History and symptoms…", action: onShowHistory)
 
             HStack {
                 Button("Remind me now", action: onRemindNow)

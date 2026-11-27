@@ -18,6 +18,8 @@ final class ReminderScheduler {
     @ObservationIgnored var onFire: (() -> Void)?
     /// Called when reminders pause, so an open popover can be closed while the screen is unseen.
     @ObservationIgnored var onPause: (() -> Void)?
+    /// Called when the last pause reason clears, and at start if nothing is paused.
+    @ObservationIgnored var onResume: (() -> Void)?
     @ObservationIgnored private let settings: Settings
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var pauseReasons: Set<PauseReason> = []
@@ -43,6 +45,7 @@ final class ReminderScheduler {
         if session?["CGSSessionScreenIsLocked"] as? Bool == true { pauseReasons.insert(.screenLocked) }
         if !pauseReasons.isEmpty { log.info("Starting paused: \(self.pauseReasons.map(\.rawValue).joined(separator: ", "), privacy: .public)") }
         restart()
+        if pauseReasons.isEmpty { onResume?() }
     }
 
     /// Starts a fresh countdown from now using the current interval, unless reminders are paused.
@@ -85,6 +88,7 @@ final class ReminderScheduler {
         guard pauseReasons.remove(reason) != nil else { return }
         log.info("Resuming: \(reason.rawValue, privacy: .public)")
         restart()
+        if pauseReasons.isEmpty { onResume?() }
     }
 
     private func fire() {

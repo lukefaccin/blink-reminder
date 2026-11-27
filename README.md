@@ -5,6 +5,7 @@ A tiny macOS menu bar app that reminds you to rest your eyes. A common rule of t
 - Press **Start** and look away. A sound plays as the countdown starts, and another when it ends and the popover closes. You can turn on **Start countdown automatically** to skip the click.
 - The reminder also closes when you click another window, switch apps, or press **Dismiss**.
 - Click the glasses icon to set how often reminders appear (1–120 min) and how long to look away (5–120 s), by typing a value or using the arrows. You can also toggle auto-start and sounds, trigger a reminder now, or quit.
+- **History and symptoms…** opens a window where you log how your eyes feel (dryness, tiredness, blurred vision, headache). It compares each day's symptoms with how many breaks you took per hour at the screen, and lists the last 7 days of breaks taken, missed and screen time. History is kept for a year in `~/Library/Application Support/BlinkReminder/activity.json`.
 - There's no Dock icon. Reminders pause while the Mac sleeps, the display is off or the screen is locked, and a fresh countdown starts when you're back.
 
 Requires macOS 14 or later and the Xcode Command Line Tools (`xcode-select --install`). The full Xcode isn't needed.
@@ -33,6 +34,8 @@ To keep it, copy `build/BlinkReminder.app` to `/Applications`.
 | --- | --- |
 | `Sources/BlinkReminder/StatusBarController.swift` | Menu bar icon, popover, and close-on-outside-click |
 | `Sources/BlinkReminder/ReminderScheduler.swift` | Reminder timer, paused across sleep |
+| `Sources/BlinkReminder/ActivityLog.swift` | Break outcomes, screen time and symptoms, and how they correlate |
+| `Sources/BlinkReminder/HistoryView.swift` | History window with symptom logging |
 | `Sources/BlinkReminder/Settings.swift` | Interval and display time, stored in `UserDefaults` |
 | `Sources/BlinkReminder/ReminderView.swift` / `SettingsView.swift` | SwiftUI popover content |
 | `scripts/build-app.sh` | Compiles with `swiftc` and assembles the `.app` bundle |

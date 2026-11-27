@@ -11,6 +11,8 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let settings: Settings
     private let scheduler: ReminderScheduler
+    private let activity: ActivityLog
+    private let history: HistoryWindowController
 
     private var reminderPanel: ReminderPanel?
     private var session: ReminderSession?
@@ -19,9 +21,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private var outsideClickMonitor: Any?
     private var appActivationObserver: NSObjectProtocol?
 
-    init(settings: Settings, scheduler: ReminderScheduler) {
+    init(settings: Settings, scheduler: ReminderScheduler, activity: ActivityLog) {
         self.settings = settings
         self.scheduler = scheduler
+        self.activity = activity
+        history = HistoryWindowController(activity: activity)
         super.init()
 
         if let button = statusItem.button {
@@ -71,7 +75,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
                 guard let self else { return }
                 log.info("Countdown finished")
                 self.playSound("Glass")
-                self.closeReminder()
+                self.closeReminder(completed: true)
             }
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -85,9 +89,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         }
     }
 
-    private func closeReminder() {
+    private func closeReminder(completed: Bool = false) {
         guard let reminderPanel else { return }
         log.info("Reminder closed")
+        let outcome: RestOutcome = completed ? .completed : session?.startedAt != nil ? .cutShort : .skipped
+        activity.recordRest(outcome, intervalMinutes: settings.intervalMinutes)
         reminderPanel.orderOut(nil)
         self.reminderPanel = nil
         session = nil
@@ -122,13 +128,17 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
 
     private func showSettings() {
         guard let button = statusItem.button else { return }
-        let hostingView = NSHostingView(rootView: SettingsView(settings: settings, scheduler: scheduler, onRemindNow: { [weak self] in
+        let hostingView = NSHostingView(rootView: SettingsView(settings: settings, scheduler: scheduler, activity: activity, onRemindNow: { [weak self] in
             guard let self else { return }
             // The close animates and isShown stays true until it finishes, so show the
             // reminder from popoverDidClose rather than straight away.
             showReminderAfterClose = true
             scheduler.restart()
             popover.performClose(nil)
+        }, onShowHistory: { [weak self] in
+            guard let self else { return }
+            popover.performClose(nil)
+            history.show()
         }))
         let controller = NSViewController()
         controller.view = hostingView
